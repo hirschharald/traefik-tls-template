@@ -38,7 +38,7 @@ if [ ! -f cert.key ]; then
     -subj "/CN=compose-dev-tls Self-Signed" \
     -reqexts SAN \
     -extensions SAN \
-    -config <(cat openssl.cnf <(printf $SAN_LIST)) \
+    -config <(printf $SAN_LIST) \
     -sha256 \
     -days 3650
 
