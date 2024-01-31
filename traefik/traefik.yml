@@ -24,7 +24,7 @@ providers:
     exposedByDefault: false
     watch: true
   file:
-    fileName: /etc/traefik/traefik.yaml
+    fileName: /etc/traefik/traefik.yml
     watch: true
 
 # listen on 80/443, and redirect all 80 to 443 via 301
@@ -44,14 +44,22 @@ entryPoints:
 
 ## DYNAMIC CONFIG
 
-tls:
-  certificates:
-    - certFile: /certs/bret.lol.crt
-      keyFile: /certs/bret.lol.key
-# when troubleshooting certs, enable this so traefik doesn't use 
-# its own self-signed. By default if it can't find a matching
-# cert, it'll just create its own which will cause cert warnings
-# in browser and can be confusing to troubleshoot
-  # options:
-    # default:
-      # sniStrict: true
+#tls:
+ # certificates:
+ #   - certFile: /certs/fullchain.pem
+ #     keyFile: /certs/cert-key.pem
+
+
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: "harryhirsch773@googlemail.com"
+      storage: "/acme.json"
+      # Let's Encrypt Live URL
+      # caserver: "https://acme-v02.api.letsencrypt.org/directory"
+      # Let's Encrypt Staging URL
+      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+      httpChallenge:
+        entryPoint: "websecure"
+

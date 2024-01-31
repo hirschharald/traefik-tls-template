@@ -29,13 +29,13 @@ if [ ! -f cert.key ]; then
   fi
 
   openssl req \
-    -newkey rsa:2048 \
+    -newkey rsa:4096 \
     -x509 \
     -nodes \
-    -keyout "cert.key" \
+    -keyout "cert-key.pem" \
     -new \
-    -out "cert.crt" \
-    -subj "/CN=compose-dev-tls Self-Signed" \
+    -out "cert.csr" \
+    -subj "/CN=composed Self-Signed" \
     -reqexts SAN \
     -extensions SAN \
     -config <(printf $SAN_LIST) \

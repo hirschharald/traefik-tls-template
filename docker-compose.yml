@@ -1,0 +1,94 @@
+# no more versions needed! Compose spec supports all features w/o a version
+
+services:
+
+  traefik:
+    image: "traefik:v2.10"
+    container_name: "traefik"
+    command:
+      - "--log.level=INFO"
+   #   - "--api.insecure=true" do not use in production
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=youremail@email.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "443:443"
+      - "7777:8080"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.xxx.example.de`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik.middlewares=traefik-auth"
+      # Note: when used in docker-compose.yml all dollar signs in the hash need to be doubled for escaping.
+      # To create user:password pair, it's possible to use this command:
+      # echo $(htpasswd -nB user) | sed -e s/\\$/\\$\\$/g
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=user:$$2y$$05$$tsHl/5aBXd.WQYMX4z1XRORnWNLi4tJAV7eBEI9rD4sDzCp2itvWW"
+    restart: always
+    networks:
+    - traefik-proxy
+
+  httpd:
+    image: httpd
+    labels:
+      - "traefik.enable: true"
+      - "traefik.http.routers.httpd.tls: true"
+      - "traefik.http.routers.httpd.tls.certresolver=myresolver"
+      - "traefik.http.routers.httpd.rule: Host(`httpd.xxx.example.de`)"
+      #"traefik.http.routers.httpd.rule: PathPrefix(`/httpd`)"
+      - "traefik.http.routers.httpd.entrypoints: websecure"
+
+    restart: always
+    networks:
+    - traefik-proxy
+
+  nginx:
+    image: nginx
+    labels:
+      - "traefik.enable: true"
+      - "traefik.http.routers.nginx.tls.certresolver=myresolver"
+      - "traefik.http.routers.nginx.tls: true"   
+      - "traefik.http.routers.nginx.rule: Host(`nginx.xxx.example.de`)"
+      - "traefik.http.routers.nginx.entrypoints: websecure"
+    restart: always
+    networks:
+    - traefik-proxy
+
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    ports:
+    - "8888:80"
+    environment:
+    - "WEBSOCKET_ENABLED=true"      # Enable WebSocket notifications.
+    - "LOG_FILE=/data/bitwarden.log"
+    - "ADMIN_TOKEN=${ADMIN_TOKEN}"
+    - "SMTP_HOST=${SMTP_HOST_TOKEN}"
+    - "SMTP_FROM=${SMTP_FROM_TOKEN}"
+    - "SMTP_PORT=465"
+    - "SMTP_SSL=true"
+    - "SMTP_USERNAME=${SMTP_USERNAME_TOKEN}"
+    - "SMTP_EXPLICIT_TLS= true"
+    - "SMTP_PASSWORD=${SMTP_PASSWORD_TOKEN}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vaultwarden.tls: true
+      - "traefik.http.routers.vaultwarden.tls.certresolver=myresolver"
+      - "traefik.http.routers.vaultwarden.rule=Host(`vw.xxx.example.de`)"
+      - "traefik.http.routers.vaultwarden.entrypoints=websecure"
+      - "traefik.http.services.vaultwarden.loadbalancer.server.port=80"
+    volumes:
+    - ./volumes/vw-data:/data
+    restart: always
+    networks:
+    - traefik-proxy
+
+

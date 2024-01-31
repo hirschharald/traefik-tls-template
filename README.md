@@ -16,26 +16,11 @@ Inspired by [this great Traefik + Compose walkthrough](https://github.com/DoTheE
 
 ## Overall Steps to Implement
 
-1. Decide on your URL scheme like `*.nip.io`, `*.localhost`, `*.vcap.me`, or even `*.bret.lol`
+tkk1. Decide on your URL scheme like `*.nip.io`, `*.localhost`, `*.tkk.me`, or even `*.drahtlos.me`
 2. Create and install a self-signed wildcard cert for your browser with `cert.sh`
 3. Add this `docker-compose.yaml` and `traefik.yaml` to your projects, and replace the nginx/httpd example compose services with your apps
 
-## Decide on Your URL Scheme
-
-TODO
-
-## Create and Install a Self-Signed Wildcard Certificate
-
-TODO
-
-## Add Compose+Traefik YAML to Your Projects
-
-TODO
-
-## What is bret.lol
-
-It's just a domain I maintain that responds to every hostname *.bret.lol with 127.0.0.1 (localhost). You're welcome to use it, or use one of the others mentioned above.
-
-## License
-
-This repository uses [The Unlicense](./LICENSE)
+### Test the certificate
+```
+openssl x509 -in <certname> -text
+```
